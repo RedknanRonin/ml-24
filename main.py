@@ -25,7 +25,7 @@ df.drop(["Anxiety", "Depression", "Insomnia", "OCD"], axis=1, inplace=True)
 df = df.dropna()
 df= df.select_dtypes(include=['number'])
 data= df
-print (data.columns)
+
 
 def modelByLinearRegression():
 
@@ -60,6 +60,8 @@ def modelByLinearRegression():
     mse=mean_squared_error(y_test, y_pred)
     print("Mean Absolute Error for linear regression: ", mae)
     print("Mean Squared Error for linear regression: ", mse)
+    print("Training score for linear regression: ", regr.score(X_train, y_train))
+
 
     plt.scatter(y_test, y_pred)
     plt.xlabel('Actual')
@@ -70,17 +72,18 @@ def modelByLinearRegression():
 
 def modelByLassoRegression():
     #X contain 'Age','Hours per day', 'While working', and fav genre columns
-    X = data.drop(["Mental Health","Instrumentalist",'Composer', 'Exploratory', 'Foreign languages', 'BPM'], axis=1)
+    X = data.drop(["Mental Health"], axis=1)
     y = data["Mental Health"]
     #print(y.sum()/len(y))
 
 
     (X_train,X_test,y_train,y_test)=train_test_split(X,y)
-    model= Lasso(0.1).fit(X_train,y_train)
+    model= Lasso(1.8).fit(X_train,y_train)
     y_pred=model.predict(X_test)   # predicting values for
 
     mse = mean_squared_error(y_test, y_pred)
-    print("Mean Squared Error for Lasso regression: ", mse)
+    print("\nMean Squared Error for Lasso regression: ", mse)
+    print("Training score for Lasso regression: ", model.score(X_train, y_train))
 
     plt.scatter(y_test, y_pred, color="b")
     plt.xlabel('Actual mental health score')    # set the label for the x/y-axis
