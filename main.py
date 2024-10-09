@@ -1,6 +1,7 @@
 import matplotlib
 import numpy as np
 import pandas as pd
+import sklearn.linear_model
 from matplotlib import pyplot as plt
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_absolute_error, mean_squared_error
@@ -20,80 +21,70 @@ df["Instrumentalist"] = df["Instrumentalist"].apply(lambda x: 1 if x=="Yes" else
 df["Composer"] = df["Composer"].apply(lambda x: 1 if x=="Yes" else 0)
 df["Foreign languages"] = df["Foreign languages"].apply(lambda x: 1 if x=="Yes" else 0)
 df["Exploratory"] = df["Exploratory"].apply(lambda x: 1 if x=="Yes" else 0)
-df["Mental Health"] = (df["Anxiety"] + df["Depression"] + df["Insomnia"] + df["OCD"])/4
-df.drop(["Anxiety", "Depression", "Insomnia", "OCD"], axis=1, inplace=True)
+
 df = df.dropna()
 df= df.select_dtypes(include=['number'])
 data= df
 
 
-def modelByLinearRegression():
+def modelByLinearRegression(a) :
 
-    encoded = df.select_dtypes(include=['number'])
-
-    a = encoded[['Age','Hours per day', 'While working', 'Instrumentalist', 'Composer', 'Exploratory', 'Foreign languages', 'BPM', 'Fav genre_Classical', 'Fav genre_Country', 'Fav genre_EDM', 'Fav genre_Folk',
-                 'Fav genre_Gospel', 'Fav genre_Hip hop', 'Fav genre_Jazz', 'Fav genre_K pop', 'Fav genre_Latin', 'Fav genre_Lofi', 'Fav genre_Metal', 'Fav genre_Pop', 'Fav genre_R&B', 'Fav genre_Rap',
-                 'Fav genre_Rock', 'Fav genre_Video game music', 'Mental Health']]
-    #print(a)
+    anxiety = data[['Age','Hours per day', 'While working', 'Instrumentalist', 'Composer', 'Exploratory', 'Foreign languages', 'BPM', 'Fav genre_Classical', 'Fav genre_Country', 'Fav genre_EDM', 'Fav genre_Folk',
+                       'Fav genre_Gospel', 'Fav genre_Hip hop', 'Fav genre_Jazz', 'Fav genre_K pop', 'Fav genre_Latin', 'Fav genre_Lofi', 'Fav genre_Metal', 'Fav genre_Pop', 'Fav genre_R&B', 'Fav genre_Rap',
+                       'Fav genre_Rock', 'Fav genre_Video game music', a]]
 
     ct = ColumnTransformer([
         ('somename', StandardScaler(), ['Age','Hours per day', 'While working', 'Instrumentalist', 'Composer', 'Exploratory', 'Foreign languages', 'BPM', 'Fav genre_Classical', 'Fav genre_Country', 'Fav genre_EDM', 'Fav genre_Folk',
                                         'Fav genre_Gospel', 'Fav genre_Hip hop', 'Fav genre_Jazz', 'Fav genre_K pop', 'Fav genre_Latin', 'Fav genre_Lofi', 'Fav genre_Metal', 'Fav genre_Pop', 'Fav genre_R&B', 'Fav genre_Rap',
                                         'Fav genre_Rock', 'Fav genre_Video game music'])
     ], remainder='passthrough')
-    b = ct.fit_transform(a[['Age','Hours per day', 'While working', 'Instrumentalist', 'Composer', 'Exploratory', 'Foreign languages', 'BPM', 'Fav genre_Classical', 'Fav genre_Country', 'Fav genre_EDM', 'Fav genre_Folk',
-                            'Fav genre_Gospel', 'Fav genre_Hip hop', 'Fav genre_Jazz', 'Fav genre_K pop', 'Fav genre_Latin', 'Fav genre_Lofi', 'Fav genre_Metal', 'Fav genre_Pop', 'Fav genre_R&B', 'Fav genre_Rap',
-                            'Fav genre_Rock', 'Fav genre_Video game music', 'Mental Health']])
-    #print(b)
-
+    b = ct.fit_transform(anxiety)
     X = b[:, :24]
     y = b[:, -1]
-    #print(X)
-    #print(y)
-
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state = 20, test_size = 0.2)
-    y_test.shape
     regr = LinearRegression().fit(X_train,y_train)
     y_pred = regr.predict(X_test)
-
-    mae=mean_absolute_error(y_pred, y_test)
-    mse=mean_squared_error(y_test, y_pred)
-    print("Mean Absolute Error for linear regression: ", mae)
-    print("Mean Squared Error for linear regression: ", mse)
-    print("Training score for linear regression: ", regr.score(X_train, y_train))
-
-
+    print(f"\nR^2 score for Linear Regression in {a}: ",regr.score(X_test, y_test))
+    print("Mean squared error for linear regression: ",mean_squared_error(y_test, y_pred))
     plt.scatter(y_test, y_pred)
     plt.xlabel('Actual')
     plt.ylabel('Predicted')
-    plt.title('Linear Regression with PCA Components')
+    plt.title(a)
     plt.show()
 
 
-def modelByLassoRegression():
-    #X contain 'Age','Hours per day', 'While working', and fav genre columns
-    X = data.drop(["Mental Health"], axis=1)
-    y = data["Mental Health"]
-    #print(y.sum()/len(y))
+def modelByLassoRegression(cond):
+    anxiety = data[['Age','Hours per day', 'While working', 'Instrumentalist', 'Composer', 'Exploratory', 'Foreign languages', 'BPM', 'Fav genre_Classical', 'Fav genre_Country', 'Fav genre_EDM', 'Fav genre_Folk',
+                    'Fav genre_Gospel', 'Fav genre_Hip hop', 'Fav genre_Jazz', 'Fav genre_K pop', 'Fav genre_Latin', 'Fav genre_Lofi', 'Fav genre_Metal', 'Fav genre_Pop', 'Fav genre_R&B', 'Fav genre_Rap',
+                    'Fav genre_Rock', 'Fav genre_Video game music', cond]]
 
+    ct = ColumnTransformer([
+        ('somename', StandardScaler(), ['Age','Hours per day', 'While working', 'Instrumentalist', 'Composer', 'Exploratory', 'Foreign languages', 'BPM', 'Fav genre_Classical', 'Fav genre_Country', 'Fav genre_EDM', 'Fav genre_Folk',
+                                        'Fav genre_Gospel', 'Fav genre_Hip hop', 'Fav genre_Jazz', 'Fav genre_K pop', 'Fav genre_Latin', 'Fav genre_Lofi', 'Fav genre_Metal', 'Fav genre_Pop', 'Fav genre_R&B', 'Fav genre_Rap',
+                                        'Fav genre_Rock', 'Fav genre_Video game music'])
+    ], remainder='passthrough')
+    b = ct.fit_transform(anxiety[['Age','Hours per day', 'While working', 'Instrumentalist', 'Composer', 'Exploratory', 'Foreign languages', 'BPM', 'Fav genre_Classical', 'Fav genre_Country', 'Fav genre_EDM', 'Fav genre_Folk',
+                                  'Fav genre_Gospel', 'Fav genre_Hip hop', 'Fav genre_Jazz', 'Fav genre_K pop', 'Fav genre_Latin', 'Fav genre_Lofi', 'Fav genre_Metal', 'Fav genre_Pop', 'Fav genre_R&B', 'Fav genre_Rap',
+                                  'Fav genre_Rock', 'Fav genre_Video game music', cond]])
+    X = b[:, :24]
+    y = b[:, -1]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state = 20, test_size = 0.2)
+    regr = Lasso(0.09).fit(X_train,y_train)
 
-    (X_train,X_test,y_train,y_test)=train_test_split(X,y)
-    model= Lasso(1.8).fit(X_train,y_train)
-    y_pred=model.predict(X_test)   # predicting values for
+    y_pred = regr.predict(X_test)
+    print(f"\nR^2 score for Lasso regression in {cond}: ",regr.score(X_test, y_test))
+    print("Mean squared error for lasso regression: ",mean_squared_error(y_test, y_pred))
+    plt.scatter(y_test, y_pred)
+    plt.xlabel('Actual')
+    plt.ylabel('Predicted')
+    plt.title(cond)
+    plt.show()
 
-    mse = mean_squared_error(y_test, y_pred)
-    print("\nMean Squared Error for Lasso regression: ", mse)
-    print("Training score for Lasso regression: ", model.score(X_train, y_train))
+condition = ['Anxiety', 'OCD', 'Depression', 'Insomnia']
 
-    plt.scatter(y_test, y_pred, color="b")
-    plt.xlabel('Actual mental health score')    # set the label for the x/y-axis
-    plt.ylabel('Predicted mental health score')
+for i in condition:
+    #modelByLinearRegression(i)
+    modelByLassoRegression(i)
 
-    plt.title("Actual mental health score in relation to predicted score",fontsize=14)
-
-    plt.show()  # display the plot on the screen
-
-modelByLinearRegression()
-modelByLassoRegression()
 
 
